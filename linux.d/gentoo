@@ -1,0 +1,69 @@
+# these are the Gentoo Linux specific build functions
+ROOT="/"
+FOUND_GTK3=$(qlist -I gtk+:3)
+
+check_use_flag() {
+    package=$1
+    use_flags=${@:2}
+    result=$(equery u ${package} | xargs)
+    for flag in ${use_flags}; do
+        if ! echo $result | grep --quiet "+${flag}"; then
+            echo ERROR: $package requires USE=\"${flag}\"
+            USE_FLAGS_REQUIRED=1
+        fi
+    done
+}
+
+check_use_flag media-libs/mesa osmesa
+check_use_flag virtual/mpi cxx threads
+#check_use_flag sys-cluster/openmpi cxx
+
+if [ ! -z $USE_FLAGS_REQUIRED ]; then
+    echo USE_FLAGS_REQUIRED: $USE_FLAGS_REQUIRED
+    exit 1
+fi
+
+# Addtional Dev packages for OrcaSlicer
+export REQUIRED_DEV_PACKAGES=(
+    dev-build/cmake
+    net-misc/curl
+    sys-apps/dbus
+    gui-libs/eglexternalplatform
+    kde-frameworks/extra-cmake-modules
+    sys-apps/file
+    sys-devel/gettext
+    dev-vcs/git
+    media-libs/glew
+    media-libs/gstreamer
+    dev-cpp/gstreamermm
+    x11-libs/gtk+:3
+    dev-libs/libmspack
+    app-crypt/libsecret
+    media-libs/mesa
+    dev-build/ninja
+    dev-libs/openssl
+    sys-apps/texinfo
+    dev-libs/wayland-protocols
+    net-libs/webkit-gtk:4
+    net-misc/wget
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    echo -n -e "Updating linux ...\n"
+    NEEDED_PKGS=""
+    for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
+        qlist -I ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
+    done
+
+    echo $NEEDED_PKGS
+    exit
+
+    if [ -n "${NEEDED_PKGS}" ]; then
+        sudo emerge -qav ${NEEDED_PKGS}
+    fi
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK3_DEV=${FOUND_GTK3}
