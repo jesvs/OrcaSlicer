@@ -16,10 +16,8 @@ check_use_flag() {
 
 check_use_flag media-libs/mesa osmesa
 check_use_flag virtual/mpi cxx threads
-#check_use_flag sys-cluster/openmpi cxx
 
 if [ ! -z $USE_FLAGS_REQUIRED ]; then
-    echo USE_FLAGS_REQUIRED: $USE_FLAGS_REQUIRED
     exit 1
 fi
 
